@@ -1,3 +1,4 @@
+[Trabajo Grupal - Estadística 2.xlsx](https://github.com/Gbaldeonb/Estadistica/files/9539920/Trabajo.Grupal.-.Estadistica.2.xlsx)
 # Entregable 1
 
 Miembros del grupo:
