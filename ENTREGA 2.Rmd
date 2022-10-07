@@ -1,0 +1,330 @@
+---
+title: "ENTREGA 2"
+output: html_document
+date: "2022-10-07"
+---
+Integrantes:
+- Sarmiento, Luciana
+- Baldeón, Gonzalo
+- Ontaneda, Illariy
+
+```{r}
+knitr::include_graphics("IMAGEN1.jpg")
+```
+
+
+```{r}
+#LIBRERÍAS PRIMORDIALES:
+library(rio)
+library(dplyr)
+```
+
+IMPORTANDO LA DATA:
+
+```{r}
+
+#DATA LUCIANA:
+
+IDHDESDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/IDH%20ajusted%20des.xlsx%20-%20TABLE.csv")
+
+DIVELTDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Division%20Elites.csv")
+
+CORRUPDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Corrupcion.csv")
+
+#DATA GONZALO:
+
+LEGESTDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Legitimidad%20Estatal.csv")
+
+AMENAZDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Amenazas.csv")
+
+DESEMPDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Desempleo.csv")
+
+#DATA ILLARIY
+
+SERVPBDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Servicios%20Publicos.csv")
+
+PROCESDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Proceso%20electoral.csv")
+
+COSTVIDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Costo%20de%20Vida.csv")
+
+#DATA PAÍSES
+
+ISODATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/ISODATA.csv")
+
+#DATA VARIABLE DEPENDIENTE
+INDFELDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Indice%20de%20felicidad.csv")
+
+```
+
+LIMPIANDO DATA VARIABLE DEPENDIENTE
+
+```{r}
+#eliminar variables innecesarias
+INDFELDATA$`Global rank`=NULL
+INDFELDATA$`Available data`=NULL
+
+#renombrando variables
+colnames(INDFELDATA) = c("Country","Hapiness_index")
+
+```
+
+
+LIMPIANDO DATA 1: Inequality adjusted HDI
+
+```{r}
+
+#eliminar variables innecesarias
+IDHDESDATA$V1=NULL
+IDHDESDATA$V3=NULL
+IDHDESDATA$V5=NULL
+IDHDESDATA$V6=NULL
+IDHDESDATA$V7=NULL
+IDHDESDATA$V8=NULL
+IDHDESDATA$V9=NULL
+IDHDESDATA$V10=NULL
+IDHDESDATA$V11=NULL
+
+#renombrando variables
+colnames(IDHDESDATA) = c("Country","Inequality_adjusted_HDI")
+
+#eliminar filas innecesarias
+IDHDESDATA = IDHDESDATA[-1,]
+
+IDHDESDATA = IDHDESDATA[-1,]
+
+IDHDESDATA = IDHDESDATA[-1,]
+
+```
+
+LIMPIANDO DATA 2:Factionalized elites
+
+```{r}
+
+#eliminar variables innecesarias
+DIVELTDATA$`Global rank`=NULL
+DIVELTDATA$`Available data`=NULL
+
+#renombrando variables
+colnames(DIVELTDATA) = c("Country","Factionalized_elites")
+
+```
+
+LIMPIANDO DATA 3: Corruption
+
+```{r}
+
+#eliminar variables/columnas innecesarias
+CORRUPDATA = CORRUPDATA[,- (1)][,- (4: 19)]
+CORRUPDATA$V4=NULL
+
+#eliminar filas innecesarias
+CORRUPDATA = CORRUPDATA[-1,]
+
+#renombrando variables
+colnames(CORRUPDATA) = c("Country","Corruption")
+```
+
+LIMPIANDO DATA 4:State legitimacy
+
+```{r}
+#renombrando variables
+colnames(LEGESTDATA)[1] = "Country"
+colnames(LEGESTDATA)[2] = "State_legitimacy"
+
+#eliminando columnas innecesarias
+LEGESTDATA = LEGESTDATA[c(1,2)]
+```
+
+LIMPIANDO DATA 5: Security threats
+
+```{r}
+#renombrando variables
+colnames(AMENAZDATA)[1] = "Country"
+colnames(AMENAZDATA)[2] = "Security_threats"
+
+#eliminanado columnas innecesarias
+AMENAZDATA = AMENAZDATA[c(1,2)]
+```
+
+LIMPIANDO DATA 6: Unemployment
+
+```{r}
+#renombrando variables
+colnames(DESEMPDATA)[1] = "Country"
+colnames(DESEMPDATA)[2] = "Unemployment"
+
+#eliminanado columnas innecesarias
+DESEMPDATA = DESEMPDATA[c(1,2)]
+```
+
+LIMPIANDO DATA 7: Public Services
+
+```{r}
+#renombrando variables
+colnames(SERVPBDATA)[3] = "rank"
+colnames(SERVPBDATA)[1] = "Country"
+colnames(SERVPBDATA)[2] = "Public_Services"
+
+#eliminanado columnas innecesarias
+SERVPBDATA = SERVPBDATA[-c(3,4)]
+```
+
+LIMPIANDO DATA 8: Cost of Living plus Rent
+
+```{r}
+#renombrando variables
+colnames(COSTVIDATA)[1] = "Country"
+colnames(COSTVIDATA)[2] = "Cost_of_Living_plus_Rent"
+
+#eliminando columnas innecesarias
+COSTVIDATA = COSTVIDATA[-c(3:5)]
+```
+
+LIMPIANDO DATA 9: Electoral Process and pluralism
+
+```{r}
+#renombrando variables
+colnames(PROCESDATA)[1] = "rank"
+
+#eliminando columnas innecesarias
+PROCESDATA = PROCESDATA[c(3,7)]
+
+#renombrando variables
+colnames(PROCESDATA) = c("Country","Electoral_Process_and_pluralism")
+```
+
+LIMPIANDO ISODATA
+
+```{r}
+
+colnames(ISODATA) = c("name","Country", "iso2", "iso3")
+ISODATA$name=NULL
+ISODATA$iso2=NULL
+
+```
+
+Se observó que no se necesitó el ISODATA debido a que el nombre de los países (en todas las datas de las variables) está en inglés.
+
+```{r}
+knitr::include_graphics("IMAGEN2.jpg")
+```
+
+MERGEANDO:
+
+```{r}
+data_resultado1=inner_join(CORRUPDATA,DIVELTDATA ,by="Country")
+
+data_resultado2=inner_join(data_resultado1,IDHDESDATA ,by="Country")  
+
+data_resultado3=inner_join(data_resultado2,LEGESTDATA ,by="Country") 
+
+data_resultado4=inner_join(data_resultado3,AMENAZDATA ,by="Country") 
+
+data_resultado5=inner_join(data_resultado4,DESEMPDATA ,by="Country") 
+
+data_resultado6=inner_join(data_resultado5,SERVPBDATA ,by="Country")
+
+data_resultado7=inner_join(data_resultado6,PROCESDATA ,by="Country") 
+
+data_resultado8=inner_join(data_resultado7,COSTVIDATA ,by="Country") 
+
+data.final=inner_join(data_resultado8,INDFELDATA ,by="Country")
+head(data.final)
+
+```
+
+VIENDO EL STR DE TODA LA DATA 
+
+```{r}
+str(data.final)
+
+#cambiamos las variables de "chr" a numeric
+seleccion=c("Corruption","Inequality_adjusted_HDI")
+data.final[,seleccion]=lapply(data.final[,seleccion],as.numeric)
+
+#verificamos
+str(data.final)
+```
+
+HACIENDO LAS REGRESIONES:
+
+```{r}
+knitr::include_graphics("IMAGEN3.jpg")
+```
+
+REGRESIÓN LUCIANA:
+
+```{r}
+library(stargazer)
+reg1=lm(Hapiness_index~Corruption+ Factionalized_elites+ Inequality_adjusted_HDI, data.final)
+summary(reg1)
+
+library(modelsummary)
+model1=list('modelo 1'=reg1) 
+modelsummary(model1, title = "Regresion: modelo 1",
+              stars = TRUE,
+              output = "kableExtra")
+
+```
+
+Los resultados de la primera regresión muestran que:
+- De manera general, se puede apreciar que el R2 Adj. es 0.690 lo que indicaría que el modelo tiene una importante significancia ante la variable dependiente; sim embargo, se debe determinar el grado de relevancia de las variables 
+- La primera variable "Corruption" es la que menos influye al modelo, pues carece de "*" y su valor es de 0.001; por lo que su análisis no sería relevante para el modelo.
+- La segunda variable "Factionalized_elites" tiene cierto grado de significancia en el modelo, esto se midió por su p < 0.01 simbolizado en "**". Para el análisis de esta variable, se debe tomar en cuenta que, mientras el número se acerca más al 0, habrá menor grado de división de elites; y, mientras el número se acerque más al 10, habrá un mayor grado de división de élites. En este sentido se puede decir que mientras mayor grado de factorización de élites haya en un Estado, menos feliz será la población.
+- La tercero variable "Inequality_adjusted_HDI" tiene una relación positiva y una gran significancia ("***" y su p < 0.001), por lo que sería la variable independiente que mayor aporte tiene para explicar a la variable dependiente en el modelo1.Esta variable mide el índice de desarrollo humano ajustado a la desigualdad en un Estado y además, mientras mayor sea el número, mayor es el IDH -ajustado a la desigualdad-; en este sentido, se puede determinar que a mayor Inequality_adjusted_HDI, mayor grado de felicidad en las personas de un Estado.
+
+
+REGRESIÓN GONZALO:
+
+```{r}
+library(stargazer)
+reg2=lm(Hapiness_index~State_legitimacy+ Security_threats+ Unemployment, data.final)
+summary(reg2)
+
+library(modelsummary)
+model2=list('modelo 2'=reg2) 
+modelsummary(model2, title = "Regresion: modelo 2",
+              stars = TRUE,
+              output = "kableExtra")
+```
+
+Los resultados de la segunda regresión muestran que:
+- Hay una significancia relativa. Esto es así ya que el R2 tiene un valor de 0.553, el cual puede ser tomado en ciencias sociales como un valor con suficiente significancia. De esta manera, se puede decir del modelo 2 que contribuye a la explicación de la variable dependiente. 
+- Además, se tiene en cuenta que solo una de las variables del modelo es estadísticamente significativa: Legitimidad estatal, que es la única que cuenta con un p-valor menor a 0.05 y, además tres asteriscos "***". Ya que, para esta variable, una mayor puntuación implica una menor legitimidad del país, se da una relación inversa con la variable dependiente: a mayor puntuación en la variable Legitimidad estatal, menor felicidad. - Hay un mismo tipo de relación con las variables restantes: a mayor puntuación en Amenazas y Desempleo, menor felicidad.
+
+REGRESIÓN ILLARIY:
+
+```{r}
+library(stargazer)
+reg3=lm(Hapiness_index~Cost_of_Living_plus_Rent+ Electoral_Process_and_pluralism+ Public_Services, data.final)
+summary(reg3)
+library(modelsummary)
+model3=list('modelo 3'=reg3) 
+modelsummary(model3, title = "Regresion: modelo 3",
+              stars = TRUE,
+              output = "kableExtra")
+```
+
+Los resultados de la tercera regresión muestran que:
+- El modelo presenta una gran significancia a escala global. Esto es debido a que el R2 tiene un valor de 0.711, lo cual es muy cercano a 1. Esto significa que las variables del modelo (costo de vida, proceso electoral y pluralismo y servicios publicos) explican significativamente a la variable dependiente (Indice de felicidad). 
+- Las tres variables del modelo 3 si son estadisticamente significativas, debido a que cuentan con un p-valor menor a 0.05, y cuentan con "***". 
+- También se percibe que la variable de servicios públicos tiene una significancia negativa y un poco mayor que las otras dos. Sin embargo esto es así debido a que cuanto mayor sea el valor indicado, peores seran los servicios. Por lo tanto, el resultado de esta variable refleja que los paises con peores servicios son menos felices.
+
+```{r}
+knitr::include_graphics("IMAGEN4.jpg")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
