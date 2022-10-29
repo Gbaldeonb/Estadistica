@@ -3,6 +3,9 @@ title: "ENTREGA 2"
 output: html_document
 date: "2022-10-07"
 ---
+
+ffffff
+
 Integrantes:
 - Sarmiento, Luciana
 - Baldeón, Gonzalo
