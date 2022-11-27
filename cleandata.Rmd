@@ -50,7 +50,7 @@ INDFELDATA[INDFELDATA$Country=='Burma','Country']='Myanmar'
 ```{r echo=FALSE}
 head(INDFELDATA)
 ```
-  Interpretación:
+  Interpretación: La data de la variable Índice de Felicidad cuenta con los resultados de 149 países. Los puntajes de los países se encuentran en una escala de 0-10 en base a una encuesta respecto a la calidad de vida, donde 1 es menos feliz y 10 es más feliz.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 1: Inequality_adjusted_HDI
 ```{r include=FALSE}
@@ -81,7 +81,7 @@ IDHDESDATA[IDHDESDATA$Country=='Türkiye','Country']='Turkey'
 ```{r echo=FALSE}
 head(IDHDESDATA)
 ```
-  Interpretación:
+  Interpretación: La data de la variables IDH ajustado por desigualdad contiene los puntajes de 185 países por medio de una escala que va de 0-1. En donde un valor más cercano a 1 significa que el país tiene un buen Índice de Desarrollo Humano y menos desigualdad en su país. Entonces, la ecuación sería: IDH/ un factor de desigualdad mayor a 1.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 2: Factionalized_elites
 ```{r include=FALSE}
@@ -96,7 +96,7 @@ summary(DIVELTDATA)
 ```{r echo=FALSE}
 head(DIVELTDATA)
 ```
-  Interpretación:
+  Interpretación: La data de la variable División e Elites cuenta con 177 resultados de países. Esta variable tiene una escala de 0-10, donde 0 significa división de elites baja y 10 por ende, es división de elites alta.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 3: State_legitimacy
 ```{r include=FALSE}
@@ -113,7 +113,7 @@ LEGESTDATA[LEGESTDATA$Country=='S.T.&Principe','Country']='Sao Tome and Principe
 ```{r echo=FALSE}
 head(LEGESTDATA)
 ```
-  Interpretación:
+  Interpretación: La variable de Legitimidad Estatal cuenta con resultados de 177 países, y contiene una escala de 0-10. En principio, la escala bajada de internet estaba distribuida de tal forma que el 0 significaba mayor Legitimidad Estatal y el 10, por ende, significaba menor Legitimidad Estatal. Sin embargo, por motivos de practicidad, decidimos normalizar el rango de la variable al invertir la escala. Es decir, ahora 0 significa menor Legitimidad Estatal y 10 significa mayor Legitimidad Estatal bajo los resultados de la encuesta en la población de los países encuestados.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 4: Public_Services
 ```{r include=FALSE}
@@ -131,7 +131,7 @@ SERVPBDATA[SERVPBDATA$Country=='S.T.&Principe','Country']='Sao Tome and Principe
 ```{r echo=FALSE}
 head(SERVPBDATA)
 ```
-  Interpretación:
+  Interpretación: La variable de Servicios Públicos cuenta con resultados de 177 países, y  tiene una escala de 0-10. En principio, la escala de la variable bajada de internet estaba distribuida de tal forma que el 0 equivalía a mayor Servicios Públicos en el país y el 10 equivalía  a menor Servicios Públicos. No obstante, nos pareció mas práctico invertir la escala de la variable y, por ende, normalizar su rango. Es decir, ahora 0 significa menor Servicios Públicos y 10 significa mayor Servicios Públicos bajo los resultados de la encuesta en la población de los países encuestados.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 5: Free_expression
 ```{r include=FALSE}
@@ -152,7 +152,7 @@ FREEXPDATA[FREEXPDATA$Country=="Cote d'Ivoire",'Country']='Ivory Coast'
 ```{r echo=FALSE}
 head(FREEXPDATA)
 ```
-  Interpretación:
+  Interpretación: La data de la variable Libertad de Expresión cuenta con 199 resultados de países. Esta variable tiene una escala de 0-1, donde 0 significa  baja Libertad de Expresión en el país encuestado y 10, por ende, es alta Libertad de Expresión en el país.
   
 VISUALIZANDO DATA VARIABLE INDEPENDIENTE 6: Electoral_Process_and_pluralism
 ```{r include=FALSE}
@@ -169,7 +169,7 @@ PROCESDATA[PROCESDATA$Country=='Czech Republic','Country']='Czechia'
 ```{r echo=FALSE}
 head(PROCESDATA)
 ```
-  Interpretación:
+  Interpretación: La data de la variable Proceso Electoral y Pluralismo cuenta con los resultados de 167 países donde se realizó la encuesta. Los puntajes de los países se encuentran en una escala de 0-10 en base a una encuesta respecto al pluralismo en las elecciones del país. Donde 1 es menor pluralismo en las elecciones y 10 es mayor pluralismo.
 
 ```{r include=FALSE}
 #VISUALIZANDO ISO DATA 
@@ -220,8 +220,5 @@ str(data.final)
 ```{r echo=FALSE}
 head(data.final)
 ```
-  Interpretación:
-
-
-
+  Interpretación: En el merge de las 7 variables, se puede ver que nos hemos quedado con los resultados de 135 países. Es decir, se han perdido 14 países de la variable índice de felicidad, 50 de la variable IDH ajustado a la desigualdad, 42 de la división de élites al igual que en legitimidad Estatal y servicios públicos, 64 países en libertad de expresión, y por último,se  perdieron 32 países en la variable proceso electoral y pluralismo. Entre los países que se han eliminado se encuentran, Bahrain, Barbados, Botswana, Cuba, Guinea Ecuatorial, Fiji, Kosovo, Kuwait, Lebanon, Libya, Malasia, Maldivas, Corea del Norte, Oman, Palestina, Arabia Saudi, Somalia, Siria, Zanzibar, Vanuatu, entre otros. Varios de los países perdidos pertenecen a África, el medio Oriente o al Sudeste Asiático. Esto puede ser debido a que varios de estos países son países de muy difícil acceso o que no permiten la recolección de información sobre su territorio. Esta pérdida de información podría estar relacionada con un tipo de regimen autoritario o conflictos internos en el país.
 
