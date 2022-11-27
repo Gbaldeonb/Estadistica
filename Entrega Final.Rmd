@@ -1,0 +1,402 @@
+---
+title: "ENTREGA FINAL: ÍNDICE DE FELICIDAD EN EL MUNDO"
+author: "Sarmiento, Ontaneda, Baldeón"
+date: "Octubre, 2022"
+subtitle: 'Curso: POL304 - Estadística para el análisis político 2'
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+## 1. INTRODUCCIÓN
+
+Se ha decidido analizar las variables causales del grado del índice de felicidad en los diferentes países del mundo. El índice de la felicidad puede demostrar la efectividad de la gobernabilidad y la satisfacción de los ciudadanos. En este sentido, si un Estado se crea por y para el bienestar de sus ciudadanos, la eficiencia del mismo será evidente en el grado de satisfacción de su población. 
+
+Asimismo, se decidió utilizar como variables independientes a:
+
+-El IDH ajustado a la desigualdad 
+
+-La polarización de la élite política
+
+-La legitimidad estatal 
+
+-La calidad del proceso electoral 
+
+-La calidad de los servicios públicos
+
+-El nivel de libertad de expresión
+
+```{r include=FALSE}
+library(rio)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(reshape)
+library(DT)
+library(equatiomatic)
+library(modelsummary)
+library(factoextra)
+library(cluster)
+data.final = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/datafinal.csv")
+#DATA VARIABLE DEPENDIENTE
+INDFELDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Indice%20de%20Felicididad%20(2022).csv")
+#Eliminar columnas innecesarias
+INDFELDATA$`Happiness 2020`=NULL
+INDFELDATA$`Rank`=NULL
+INDFELDATA$`Score Change`=NULL
+#Cambiar nombres
+colnames(INDFELDATA) = c("Country","Hapiness_index")
+#Cambiando nombre de casos
+INDFELDATA[INDFELDATA$Country=='Eswatini','Country']='Swaziland'
+INDFELDATA[INDFELDATA$Country=='Burma','Country']='Myanmar'
+
+#ISODATA
+ISODATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/ISODATA.csv")
+#VISUALIZANDO ISO DATA 
+colnames(ISODATA) = c("name","Country", "iso2", "iso3")
+ISODATA$name=NULL
+ISODATA$iso2=NULL
+#Salvando Namibia
+ISODATA[ISODATA$Country=='Namibia','iso3']= 'NA'
+```
+
+## 2. ANÁLISIS DE LA DATA CONJUNTA
+
+### a. Visualizando el table
+
+La data conjunta es una representación de un merge entre todas las variables independientes tomadas en cuenta con la variable variable dependiente.
+```{r echo=FALSE}
+datatable(data.final, filter = "top")
+```
+  En el merge de las 7 variables, se puede ver que nos hemos quedado con los resultados de 135 países. Es decir, se han perdido 14 países de la variable índice de felicidad, 50 de la variable IDH ajustado a la desigualdad, 42 de la división de élites al igual que en legitimidad Estatal y servicios públicos, 64 países en libertad de expresión, y por último,se perdieron 32 países en la variable proceso electoral y pluralismo. Entre los países que se han eliminado se encuentran, Bahrain, Barbados, Botswana, Cuba, Guinea Ecuatorial, Fiji, Kosovo, Kuwait, Lebanon, Libya, Malasia, Maldivas, Corea del Norte, Oman, Palestina, Arabia Saudi, Somalia, Siria, Zanzibar, Vanuatu, entre otros. Varios de los países perdidos pertenecen a África, el medio Oriente o al Sudeste Asiático. Esto puede ser debido a que varios de estos países son países de muy difícil acceso o que no permiten la recolección de información sobre su territorio. Esta pérdida de información podría estar relacionada con un tipo de regimen autoritario o conflictos internos en el país.
+  
+### b. Índice de felicidad según el IDH/des en los países del mundo
+```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE,fig.show='hold',fig.width=9.5,fig.height=5.55}
+ggplot(data.final, aes(x=Hapiness_index, y=Inequality_adjusted_HDI)) + 
+  geom_point(size=1.5, shape=23, color="#DC3535") +
+  geom_text(label=data.final$Country, vjust=-0.5, hjust = 1,color="#B01E68", size=4.7) +
+  
+      labs(title = "Happiness index e IDH por desigualdad a nivel mundial",
+       x = "Happines index",
+       y = "IDH por des") +
+
+  geom_smooth(method=lm, se=FALSE, linetype="dashed",
+             color="#F49D1A") + theme(panel.background = element_blank())
+```
+Como se observa en el gráfico, existe una correlación positiva entre la variable independiente IDH ajustado a la desigualdad y la variable dependiente Indice de felicidad, lo cual implica que, a mayor puntaje de IDH ajustado a la desigualdad, los países tendrán un mayor puntaje en el Indice de felicidad. Cabe mencionar que la fuerza de esta relación será mayor en los países que se acercan más a la línea trazada, y menor a medida que los casos se alejen de esta. Así, se registra la presencia de casos atípicos como Afganistán, que sin contar con el puntaje más bajo de IDH ajustado a la desigualdad, sí presenta el menor puntaje en cuanto al Indice de felicidad, por lo que se distancia considerablemente de la línea trazada.
+
+## 3. MAPA VARIABLE DEPENDIENTE
+```{r include=FALSE}
+INDFELDATA$cortes_pctopo = factor(ifelse(INDFELDATA$Hapiness_index<4,1,
+  ifelse(INDFELDATA$Hapiness_index>=4  & INDFELDATA$Hapiness_index<5.7,2,
+  ifelse(INDFELDATA$Hapiness_index>=5.7  & INDFELDATA$Hapiness_index<6.7,3,
+  ifelse(INDFELDATA$Hapiness_index>=6.7  & INDFELDATA$Hapiness_index<8,4,0)))))
+
+INDFELDATA$cortes_pctopo = factor(INDFELDATA$cortes_pctopo, levels = c(1:4) , labels = c("Muy Baja", "Baja", "Alta", "Muy alta"))
+```
+
+```{r include=FALSE}
+mapDIS=sf::read_sf("shapes")
+str(mapDIS)
+#merge iso + variable
+DATAVARIABLEDEPENDIENTE=inner_join(ISODATA,INDFELDATA ,by="Country") 
+#Juntamos información con el shape:
+mapDIS2=merge(mapDIS,DATAVARIABLEDEPENDIENTE,by.x='iso_3166_1_',by.y='iso3', all.x = T) #siempre primero el shape
+#PRIMERO EN X EL ISO DE SHAPES Y EN Y EL ISO DE DATA
+mapDIS2
+```
+
+```{r include=FALSE}
+mapaleyendaL= ggplot(mapDIS2)+ geom_sf() + theme_light()
+
+mapaleyL= mapaleyendaL + geom_sf(data=mapDIS2,
+              aes(fill=`cortes_pctopo`),color = "white")
+      
+mapa= mapaleyL +
+coord_sf() + 
+scale_fill_manual(values=c("#FFF89C","#EED180","#DC6790", "#B93160")) + theme_void() +
+  
+theme(axis.title = element_blank(), axis.text = element_blank(), legend.position = "bottom") + labs(fill=" ") + theme(legend.text = element_text(size = 8)) +
+  
+labs(title = "VARIABLE DEPENDIENTE: ÍNDICE DE FELICIDAD EN EL MUNDO") +
+  
+theme(
+plot.title = element_text(color="#344D67", size=10, face="bold"))
+```
+
+```{r echo=FALSE, eval=TRUE,fig.show='hold',fig.width=9.5,fig.height=5.55}
+mapa
+```
+Como se puede observar en el mapa mundial, los niveles de felicidad en el mundo están, en gran medida, distribuidos según la posición geográfica de cada país. Es decir, los países occidentales con más recursos económicos cuentan con un tono de rojo más oscuro que el resto de países. En ese sentido, vemos que los países con mayor índice de felicidad están mayormente presentes en el norte mundial, a modo de referencia: Finlandia cuenta con la tonalidad más oscura, seguida por Dinamarca, Suiza, Suecia, Canada, Estados Unidos entre otros (teniendo excepciones de casos como Israel, Nueva Zelanda y Australia, que registran puntuaciones altas a pesar de encontrarse fuera de la zona mencionada). En contraposición, las regiones de Africa (occidental, oriental, y sur) y Medio Oriente, que comúnmente tienen recursos económicos más bajos, cuentan con una tonalidad más clara, ergo, son las que registran los casos de Estados con menores puntajes en el índice de felicidad. Entre ellos se encuentran Afganistan, Zimbabwe, Botswana, Yemen, Tanzania y otros (teniendo excepciones como Venezuela, Haiti e India, que registran puntuaciones bajas a pesar de encontrarse fuera de la zona mencionada). Asimismo, es de relevancia mencionar que hay países pintados de gris debido a que no hay información del índice de felicidad en esos países. Esto puede ser debido al tipo de régimen del país, ya que los regímenes autoritarios son más propensos a no compartir información del país. Entre ellos se encuentran Oman, Somalia, Camerun, Republica Centro Africana, Siria, Sahara Occidental, entre otros.
+
+## 4. TÉCNICA DE REDUCCIÓN DE DIMENCIONES: ANÁLISIS FACTORIAL
+
+El análisis factorial permite conocer si las variables pueden ser agrupadas en una o más variables. Esta técnica es útil para poder crear índices.
+
+```{r include=FALSE}
+#Subsetear la data
+dontselect=c("Country", "Hapiness_index")
+select=setdiff(names(data.final),dontselect) 
+theData=data.final[,select]
+#matriz de correlación
+library(polycor)
+library(ggcorrplot)
+corMatrix=polycor::hetcor(theData)$correlations
+```
+
+- Verificando correlación entre las variables:
+```{r echo=FALSE}
+#Explorar correlaciones
+ggcorrplot(corMatrix,colors = c('#B93160','#D75281','#EED180'))
+```
+
+En cuanto al análisis de correlación entre las variables, el gráfico sugiere los siguientes resultados. En primer lugar, la variable “polarización de la élite política” guarda una correlación inversa con el resto, lo cual indica que, a mayor polarización entre las élites políticas, el resto de variables registrará puntuaciones menores. En segundo lugar, la variable “IDH ajustado a la desigualdad” registra correlaciones positivas con el resto, siendo la correlación con “servicios públicos” la de mayor fuerza, y con “libertad de expresión” la de menor fuerza. En tercer lugar, la variables “proceso electoral” y “legitimidad estatal” registran correlaciones positivas con el resto. En cuarto lugar, la variable “libertad de expresión” registra correlaciones positivas con el resto, siendo la correlación con “servicios públicos” y con ” IDH ajustado a la desigualdad” la de menor fuerza. Por último, la variable “servicios públicos tiene una correlación positiva con el resto, siendo la correlación con”IDH ajustado a la desigualdad” la más fuerte, y “libertad de expresión” la de menor fuerza. 
+
+### a. Verificando si la matriz es adecuada: 
+```{r include=FALSE}
+#Matriz Identidad:
+library(psych)
+library(matrixcalc)
+#Matriz identidad
+cortest.bartlett(corMatrix,n=nrow(theData))$p.value>0.05
+#Matriz singular
+is.singular.matrix(corMatrix)
+```
+En cuanto a la evaluación de matriz identidad encontramos que, ya que el pvalue es menor al límite (0.05), podemos decir que las correlaciones no serán iguales para todas las muestras y que (por lo menos) algunas de las variables están correlacionadas entre sí, por lo que la matriz de datos será válida para continuar con el análisis factorial. Por otro lado, en cuanto a la evaluación de matriz singular encontramos que, ya que el resultado es falso, podemos decir que la matriz de correlación no es singular y que puede ser invertida, por lo que será válida para continuar con el análisis factorial.
+
+### b. Redimensionando:
+```{r include=FALSE}
+#ver número de variables que recomienda la data
+fa.parallel(theData, fa = 'fa',correct = T,plot = F)
+library(GPArotation)
+resfa <- fa(theData,
+            nfactors = 2,
+            cor = 'mixed',
+            rotate = "varimax",
+            fm="minres")
+```
+
+```{r echo=FALSE}
+fa.diagram(resfa, main = "Resultados del EFA")
+```
+
+El gráfico demuestra que la data ha sido redimensionada por R en dos factores o variables latentes. En primer lugar, tenemos que las variables “servicios públicos” e “IDH ajustado a la desigualdad” han sido clasificadas en el primer factor “MR1”, teniendo valores de afiliación de 1 y 0.9, respectivamente. En segundo lugar, las variables “libertad de expresión”, “proceso electoral”, “legitimidad estatal” y “polarización de la élite política” fueron clasificadas en el segundo factor “MR2”, teniendo valores de afiliación de 0.9, 0.8, 0.8 y -0.6, respectivamente, siendo este último el menor valor de afiliación registrado.
+
+## 5. TÉCNICA DE REDUCCIÓN DE DIMENSIONES: CONGLOMERACIÓN POR CLUSTERS 
+
+Se agrupará a los casos (los países) en función a sus características, siguiendo técnicas de reducción de dimensiones. Para esto, se detectan tres estrategias: de partición y jerárquica aglomerativa y divisiva.
+
+```{r include=FALSE}
+#Limpiando mi data
+dataClus=data.final[,c(2:8)]
+dataClus$Hapiness_index=NULL
+row.names(dataClus)=data.final$Country
+```
+
+```{r include=FALSE}
+library(cluster)
+g.dist = daisy(dataClus, metric="gower")
+```
+
+### a. Estrategia de partición
+```{r include=FALSE}
+#Cantidad de clusters
+library(factoextra)
+fviz_nbclust(dataClus, pam,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F)
+
+#CLUSTERIZAR VÍA PAM
+set.seed(123)
+res.pam=pam(g.dist,6,cluster.only = F)
+#Con 4 cluster se tiene 0.39 y 6 casos mal clusterizados
+#Con 3 cluster se tiene 0.39 y 7 casos mal clusterizados
+#Con 6 cluster se tiene 0.32 y 9 casos mal clusterizados
+
+#nueva columna
+dataClus$pam=res.pam$cluster
+
+#Exponer los casos mal clusterizados
+silPAM=data.frame(res.pam$silinfo$widths)
+silPAM$country=row.names(silPAM)
+poorPAM=silPAM[silPAM$sil_width<0,'country']%>%sort()
+poorPAM
+
+#VER SILUETAS 
+fviz_silhouette(res.pam,print.summary = F)
+```
+
+Para la estrategia de partición, tenemos que R ha sugerido la división de los casos en 6 grupos. Esta cuenta con un Average Silhouette width de 0.32 y 9 casos mal clusterizados.
+
+```{r include=FALSE}
+data.final$pam=data.final$Country%in%poorPAM
+data.final$pam=as.ordered(dataClus$pam)
+dataClus$pam=NULL
+```
+
+### b. Estrategia divisiva
+```{r include=FALSE}
+#Cantidad de clusters
+fviz_nbclust(dataClus, hcut,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F,hc_func = "diana")
+```
+
+```{r include=FALSE}
+#Cluster vía DIANA
+set.seed(123)
+res.diana <- hcut(g.dist, k = 3,hc_func='diana')
+#Con 3 cluster se tiene 0.39 y 9 casos mal clusterizados
+#Con 4 cluster se tiene 0.34 y 10 casos mal clusterizados
+#Con 7 cluster se tiene 0.31 y 8 casos mal clusterizados
+dataClus$diana=res.diana$cluster
+
+#MAL CLUSTERIZADOS
+silDIANA=data.frame(res.diana$silinfo$widths)
+silDIANA$country=row.names(silDIANA)
+poorDIANA=silDIANA[silDIANA$sil_width<0,'country']%>%sort()
+poorDIANA
+
+#SILUETAS
+fviz_silhouette(res.diana,print.summary = F)
+```
+
+Para el caso de la estrategia divisiva, R sugirió inicialmente la división de los casos en 4 grupos Sin embargo, ya que esta contaba con un Average Silhouette width de 0.34 y 10 casos mal clusterizados, se decidió aumentar el número de grupos a 7, y luego reducirlos a 3. Así, la división en 7 grupos registró un Average Silhouette width de 0.31 y 8 casos mal clusterizados. Luego, la división en 3 grupos registró un Average Silhouette width de 0.39 y 9 casos mal clusterizados, por lo que se decidió que este sería el número de grupos a utilizar.
+
+```{r include=FALSE}
+data.final$diana=data.final$Country%in%poorDIANA
+data.final$diana=as.ordered(dataClus$diana)
+dataClus$diana=NULL
+```
+
+### c. Estrategia jerárquica aglomerativa
+```{r include=FALSE}
+#Cantidad de clusters
+fviz_nbclust(dataClus, hcut,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F,hc_func = "agnes")
+
+#vía agnes
+set.seed(123)
+library(factoextra)
+res.agnes<- hcut(g.dist, k = 3,hc_func='agnes',hc_method = "ward.D")
+#Con 3 cluster se tiene 0.42 y 7 casos mal clusterizados
+#Con 4 cluster se tiene 0.37 y 8 casos mal clusterizados
+#Con 7 cluster se tiene 0.3 y 19 casos mal clusterizados
+dataClus$agnes=res.agnes$cluster
+
+#MAL CLUSTERIZADOS
+silAGNES=data.frame(res.agnes$silinfo$widths)
+silAGNES$country=row.names(silAGNES)
+poorAGNES=silAGNES[silAGNES$sil_width<0,'country']%>%sort()
+poorAGNES
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE,fig.show='hold',fig.width=9.5,fig.height=5.55}
+fviz_dend(res.agnes, cex = 0.7, palette = c("#202525", "#395B64", "#85B6B7"), rect = TRUE, rect_fill = TRUE, rect_border = c("#202525", "#395B64", "#85B6B7"), labels_track_height = 1.8 )
+```
+
+```{r echo=FALSE}
+#SILUETAS
+library(paletteer)
+fviz_silhouette(res.agnes, palette = paletteer_c("ggthemes::Blue-Teal", 3), print.summary = F)
+```
+
+Para el caso de la estrategia jerárquica aglomerativa, R sugirió inicialmente la división de los casos en 7 grupos. Sin embargo, ya que esta contaba con un Average Silhouette width de 0.3 y 19 casos mal clusterizados, se decidió reducir el número de grupos a 4, y luego a 3. Así, la división en 4 grupos registró un Average Silhouette width de 0.37 y 8 casos mal clusterizados. Luego, la división en 3 grupos registró un Average Silhouette width de 0.42 y 7 casos mal clusterizados, por lo que se decidió que este sería el número de grupos a utilizar.
+  
+```{r include=FALSE}
+#Guardar columna AGNES en la datamerge y borrarla de dataClus
+data.final$agnes=data.final$Country%in%poorAGNES
+data.final$agnes=as.ordered(dataClus$agnes)
+dataClus$agnes=NULL
+```
+
+```{r include=FALSE}
+data.final$pam=NULL
+data.final$diana=NULL
+names (data.final)[9] = "clust"
+```
+
+Conclusiones finales de las técnicas de reducción de dimensiones: Se ha preferido usar la conglomeración por cluster debido a que algunas de las variables usadas para el trabajo son índices, por lo que agrupar los casos sería mucho más factible si se quiere reducir dimensiones. Por lo mismo, se analizará el cluster escogido: 
+
+### d. Características de cada conglomerado:
+
+```{r include=FALSE}
+summ_clust = data.final %>% 
+  group_by(clust) %>%
+  summarise(IDHdes = mean(Inequality_adjusted_HDI, na.rm=T),
+            ElitFac = mean(Factionalized_elites, na.rm = T),
+            StateLeg = mean(State_legitimacy, na.rm = T),
+            PublicServ = mean(Public_Services, na.rm =T),
+            FreeExpre = mean(Freedom_expression, na.rm = T),
+            ElecProcess = mean(Electoral_Process_and_pluralism, na.rm = T))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE,fig.show='hold',fig.width=9.5,fig.height=5.55}
+summ_clust%>%
+  kbl() %>%
+  kable_minimal()
+```
+
+### e. Número de países por cada conglomerado:
+```{r include=FALSE}
+bar1 = data.final %>%
+  group_by(clust) %>% #variable de cluster
+  summarise(Cluster = n()) #variable con el numero de veces
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE,fig.show='hold',fig.width=5.5,fig.height=4.3, fig.align="center"}
+ggplot(bar1, aes(x=clust, y=Cluster)) + 
+  geom_bar(stat = "identity", fill = "#cfe3e3") + 
+             
+  labs(title = "Número de países por conglomerado",
+       x = "Clusters",
+       y = "Países") +
+
+    geom_text(aes(label=Cluster), size=15, vjust=1.5, hjust = 0.5, color="white") + 
+
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
+
+```
+## 6. MAPA DE CLUSTERS : ESTRATEGIA JERÁRQUICA AGLOMERATIVA (AGNES) 
+```{r include=FALSE}
+cluster=inner_join(ISODATA,data.final ,by="Country") 
+#Juntamos información con el shape:
+mapDIS3=merge(mapDIS,cluster,by.x='iso_3166_1_',by.y='iso3', all.x = T) #siempre primero el shape
+#PRIMERO EN X EL ISO DE SHAPES Y EN Y EL ISO DE DATA
+mapDIS3
+```
+  
+```{r include=FALSE}
+mapaleyendaL1= ggplot(mapDIS3)+ geom_sf() + theme_light()
+
+mapaleyL1 = mapaleyendaL1 + geom_sf(data=mapDIS3,
+              aes(fill=`clust`),color = "white")
+      
+mapa1 = mapaleyL1 +
+coord_sf()  + 
+scale_fill_manual(values=c("#D6CDA4", "#A5C9CA", "#395B64")) + theme_void() + theme(axis.title = element_blank(), axis.text = element_blank(), legend.position = "bottom") + labs(fill=" ") + theme(legend.text = element_text(size = 8)) +
+  
+labs(title = "CLUSTERS EN MAPA") +
+  
+theme(
+plot.title = element_text(color="#344D67", size=10, face="bold"))
+```
+  
+```{r echo=FALSE, eval=TRUE,fig.show='hold',fig.width=9.5,fig.height=5.55}
+mapa1
+```
+Como se observa en el gráfico, los países han sido conglomerados en tres grupos, según la similitud del puntaje registrado para sus variables independientes. De esta manera, tenemos que los países de Asia (en su mayoría) y Africa central y oriental han sido agrupados en el grupo 1 (beige), teniendo ciertas excepciones como Venezuela y Nicaragua (que se encuentran en Sudamérica y Centroamérica, respectivamente. Por su parte, los países de Africa occidental, Sur de Africa , Sur de Asia, Sudeste Asiatico, Sudamérica y Centroamérica han sido (en su mayoría) clasificados en el grupo 2 (verde claro), con algunas excepciones como Ucrania (que se encuentra en Europa oriental). Por último, los países de Europa, Norteamérica, Asia Extremo Oriente y Oceanía han sido (en su mayoría) clasificados en el grupo 3 (verde oscuro), con algunas excepciones como Argentina y Chile (que se encuentran en Sudamérica).
+
+## 7. Modelando el índice de felicidad: Regresión de Gauss
+
+```{r include=FALSE}
+library(stargazer)
+reg=lm(Hapiness_index~Factionalized_elites+ Inequality_adjusted_HDI + Electoral_Process_and_pluralism+Freedom_expression+ Public_Services+State_legitimacy, data.final)
+summary(reg)
+library(modelsummary)
+model=list('Regresión: índice de felicidad'=reg) 
+```
+
+```{r echo=FALSE}
+modelsummary(model, title = "Regresion de Gauss",
+              stars = TRUE,
+              output = "kableExtra")
+```
+En la regresión del índice de felicidad, que incluye a todas las variables, se puede evidenciar que contiene una gran significancia a nivel global. Ya que cuenta con un R2 mayor en comparación con los otros modelos, con un valor de 0.717. Debido a que esta cifra es muy cercana a 1, quiere decir que las 6 variables empleadas en el modelo explican significativamente a la variable dependiente. Asimismo, es de relevancia notar que todas las variables redujeron su significancia de 1 hasta 3 asteriscos, ocasionando que todas las variables menos una ya no sean significativas individualmente. Es así como 5 de las 6 variables independientes ya no son significativas porque contienen un p valor mayor a 0.05. La excepción proviene de la variable de IDH ajustado a la desigualdad, ya que mantuvo 2 asteriscos. Esto quiere decir que su p valor es menor a 0.05, lo que la hace estadísticamente muy significativa y, además, la variable individual mas significativa del modelo.
+
