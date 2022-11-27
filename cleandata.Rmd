@@ -1,0 +1,227 @@
+---
+title: "CLEANDATA"
+output: html_document
+date: "2022-11-26"
+---
+
+
+```{r include=FALSE}
+#LIBRERÍAS PRIMORDIALES:
+library(rio)
+library(dplyr)
+```
+
+```{r include=FALSE}
+#DATAS:
+IDHDESDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/IDH%20ajusted%20des.csv")
+
+DIVELTDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Division%20Elites.csv")
+
+LEGESTDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Legitimidad%20Estatal.csv")
+
+SERVPBDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Servicios%20Publicos.csv")
+
+PROCESDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Proceso%20electoral.csv")
+
+FREEXPDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Freedom%20of%20Expression%202021.csv")
+
+#DATA PAÍSES
+ISODATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/ISODATA.csv")
+
+#DATA VARIABLE DEPENDIENTE
+INDFELDATA = import("https://raw.githubusercontent.com/Gbaldeonb/Estadistica/main/Indice%20de%20Felicididad%20(2022).csv")
+```
+
+**VISUALIZANDO DATAS**
+
+VISUALIZANDO DATA DE LA VARIABLE DEPENDIENTE: HAPPINESS INDEX
+```{r include=FALSE}
+#Eliminar columnas innecesarias
+INDFELDATA$`Happiness 2020`=NULL
+INDFELDATA$`Rank`=NULL
+INDFELDATA$`Score Change`=NULL
+#Cambiar nombres
+colnames(INDFELDATA) = c("Country","Hapiness_index")
+#Cambiando nombre de casos
+INDFELDATA[INDFELDATA$Country=='Eswatini','Country']='Swaziland'
+INDFELDATA[INDFELDATA$Country=='Burma','Country']='Myanmar'
+```
+
+```{r echo=FALSE}
+head(INDFELDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 1: Inequality_adjusted_HDI
+```{r include=FALSE}
+#eliminar variables innecesarias
+IDHDESDATA$V1=NULL
+IDHDESDATA$V3=NULL
+IDHDESDATA$V5=NULL
+IDHDESDATA$V6=NULL
+IDHDESDATA$V7=NULL
+IDHDESDATA$V8=NULL
+IDHDESDATA$V9=NULL
+IDHDESDATA$V10=NULL
+IDHDESDATA$V11=NULL
+#renombrando variables
+colnames(IDHDESDATA) = c("Country","Inequality_adjusted_HDI")
+#eliminar filas innecesarias
+IDHDESDATA = IDHDESDATA[-1,]
+IDHDESDATA = IDHDESDATA[-1,]
+IDHDESDATA = IDHDESDATA[-1,]
+#Cambiar nombre a Rusia y Cabo Verde
+IDHDESDATA[IDHDESDATA$Country=='Russian Federation','Country']='Russia'
+IDHDESDATA[IDHDESDATA$Country=='Cabo Verde','Country']='Cape Verde'
+IDHDESDATA[IDHDESDATA$Country=="Côte d'Ivoire",'Country']='Ivory Coast'
+IDHDESDATA[IDHDESDATA$Country=='Syrian Arab Republic','Country']='Syria'
+IDHDESDATA[IDHDESDATA$Country=='Türkiye','Country']='Turkey'
+```
+
+```{r echo=FALSE}
+head(IDHDESDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 2: Factionalized_elites
+```{r include=FALSE}
+#eliminar variables innecesarias
+DIVELTDATA$`Global rank`=NULL
+DIVELTDATA$`Available data`=NULL
+#renombrando variables
+colnames(DIVELTDATA) = c("Country","Factionalized_elites")
+summary(DIVELTDATA)
+```
+
+```{r echo=FALSE}
+head(DIVELTDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 3: State_legitimacy
+```{r include=FALSE}
+#renombrando variables
+colnames(LEGESTDATA)[1] = "Country"
+colnames(LEGESTDATA)[2] = "State_legitimacy"
+#eliminando columnas innecesarias
+LEGESTDATA = LEGESTDATA[c(1,2)]
+LEGESTDATA[LEGESTDATA$Country=='DR Congo','Country']='Democratic Republic of the Congo'
+LEGESTDATA[LEGESTDATA$Country=='Republic of Congo','Country']='Republic of the Congo'
+LEGESTDATA[LEGESTDATA$Country=='S.T.&Principe','Country']='Sao Tome and Principe'
+```
+
+```{r echo=FALSE}
+head(LEGESTDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 4: Public_Services
+```{r include=FALSE}
+#renombrando variables
+colnames(SERVPBDATA)[3] = "rank"
+colnames(SERVPBDATA)[1] = "Country"
+colnames(SERVPBDATA)[2] = "Public_Services"
+#eliminanado columnas innecesarias
+SERVPBDATA = SERVPBDATA[-c(3,4)]
+SERVPBDATA[SERVPBDATA$Country=='R. of Congo','Country']='Republic of the Congo'
+SERVPBDATA[SERVPBDATA$Country=='DR Congo','Country']='Democratic Republic of the Congo'
+SERVPBDATA[SERVPBDATA$Country=='S.T.&Principe','Country']='Sao Tome and Principe'
+```
+
+```{r echo=FALSE}
+head(SERVPBDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 5: Free_expression
+```{r include=FALSE}
+#Eliminanado filas innecesarias
+FREEXPDATA$`Upper bound 2021`=NULL
+FREEXPDATA$`Lower bound 2021`=NULL
+colnames(FREEXPDATA) = c("Country","Freexpre_index")
+#Eliminando NA`s
+FREEXPDATA=FREEXPDATA[!is.na(FREEXPDATA$Freexpre_index),]
+#reordenar el numero de variables
+row.names(FREEXPDATA)=NULL
+#Salvando el Congo
+FREEXPDATA[FREEXPDATA$Country=='Democratic Republic of Congo','Country']='Democratic Republic of the Congo'
+FREEXPDATA[FREEXPDATA$Country=="Congo",'Country']='Republic of the Congo'
+FREEXPDATA[FREEXPDATA$Country=="Cote d'Ivoire",'Country']='Ivory Coast'
+```
+
+```{r echo=FALSE}
+head(FREEXPDATA)
+```
+  Interpretación:
+  
+VISUALIZANDO DATA VARIABLE INDEPENDIENTE 6: Electoral_Process_and_pluralism
+```{r include=FALSE}
+#renombrando variables
+colnames(PROCESDATA)[1] = "rank"
+#eliminando columnas innecesarias
+PROCESDATA = PROCESDATA[c(3,7)]
+#renombrando variables
+colnames(PROCESDATA) = c("Country","Electoral_Process_and_pluralism")
+#cambiando nombres
+PROCESDATA[PROCESDATA$Country=='Czech Republic','Country']='Czechia'
+```
+
+```{r echo=FALSE}
+head(PROCESDATA)
+```
+  Interpretación:
+
+```{r include=FALSE}
+#VISUALIZANDO ISO DATA 
+colnames(ISODATA) = c("name","Country", "iso2", "iso3")
+ISODATA$name=NULL
+ISODATA$iso2=NULL
+#Salvando Namibia
+ISODATA[ISODATA$Country=='Namibia','iso3']= 'NA'
+```
+
+VISUALIZANDO EL MERGE
+```{r include=FALSE}
+data_resultado1=inner_join(DIVELTDATA,IDHDESDATA ,by="Country")
+data_resultado2=inner_join(data_resultado1,LEGESTDATA ,by="Country")  
+data_resultado3=inner_join(data_resultado2,PROCESDATA ,by="Country") 
+data_resultado4=inner_join(data_resultado3,SERVPBDATA ,by="Country") 
+data_resultado5=inner_join(data_resultado4,FREEXPDATA ,by="Country") 
+data.final=inner_join(data_resultado5,INDFELDATA ,by="Country")
+head(data.final)
+```
+
+```{r include=FALSE}
+#VIENDO EL STR DE TODA LA DATA
+#cambiamos las variables de "chr" a numeric
+data.final[,-1]=lapply(data.final[,-1], as.numeric)
+
+#verificamos
+str(data.final)
+
+#normalizando el rango (Public Services)
+data.final$Public_Services_r=data.final$Public_Services - 10
+data.final$Public_Services_r=data.final$Public_Services_r * -1
+summary(data.final$Public_Services_r)
+
+#normalizando el rango (State legitimacy)
+data.final$State_legitimacy_r=data.final$State_legitimacy - 10
+data.final$State_legitimacy_r=data.final$State_legitimacy_r * -1
+summary(data.final$State_legitimacy_r)
+
+#Borrando columnas
+data.final$Public_Services=NULL
+data.final$State_legitimacy=NULL
+#Cambiando nombres
+colnames(data.final) = c("Country","Factionalized_elites", "Inequality_adjusted_HDI", "Electoral_Process_and_pluralism", "Freedom_expression", "Hapiness_index", "Public_Services", "State_legitimacy")
+str(data.final)
+```
+
+```{r echo=FALSE}
+head(data.final)
+```
+  Interpretación:
+
+
+
+
